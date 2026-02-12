@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { hello } from "../src/utils/hello";
+import { hello } from "../src/lib/utils/hello";
 
 describe("hello", () => {
   it("returns a greeting with the given name", () => {
