@@ -24,7 +24,7 @@ export default function StarField({
 
     let animId: number
     let stars: { x: number; y: number; r: number; baseAlpha: number; alpha: number; phase: number; color: string }[] = []
-    let shootingStarList: { x: number; y: number; len: number; speed: number; angle: number; alpha: number; decay: number }[] = []
+    const shootingStarList: { x: number; y: number; len: number; speed: number; angle: number; alpha: number; decay: number }[] = []
     let orbList: { x: number; y: number; r: number; dx: number; dy: number; hue: string; alpha: number }[] = []
     const mouse = { x: -1000, y: -1000 }
     let t = 0

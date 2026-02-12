@@ -149,7 +149,7 @@ export default function Projects() {
 
       <section className="projects-hero">
         <h1 className="projects-title">Mission Control</h1>
-        <p className="projects-subtitle">A look at what I'm building, shipping, and dreaming up.</p>
+        <p className="projects-subtitle">A look at what I&apos;m building, shipping, and dreaming up.</p>
       </section>
 
       <div className="hud-bar">
