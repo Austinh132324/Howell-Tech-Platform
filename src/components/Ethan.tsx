@@ -61,6 +61,13 @@ const pageQuips: Record<string, string[]> = {
     "Numbers! Data! I love data!",
     "I've been tracking you. For analytics. Obviously.",
   ],
+  '/ethan-farm': [
+    "MY FARM! I love it here!",
+    "I grew all this myself. Well... mostly.",
+    "The pigs are my favorites. Don't tell the cows.",
+    "Fresh air, green grass, pixel animals. Paradise!",
+    "I'm the best farmer in this browser.",
+  ],
 }
 
 const defaultQuips = [
