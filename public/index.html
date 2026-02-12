@@ -44,6 +44,7 @@
     .hero {
       position: relative;
       min-height: 100vh;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -205,7 +206,7 @@
 
     /* Scroll hint */
     .scroll-hint {
-      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 32px; left: 0; right: 0;
       display: flex; flex-direction: column; align-items: center; gap: 8px;
       color: #a0a0b8; font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase;
       opacity: 0; animation: fadeUp 0.6s 1.3s forwards;
@@ -407,7 +408,7 @@
 
       <div class="stats-row">
         <div class="stat-item">
-          <div class="stat-num" data-count="4">0</div>
+          <div class="stat-num" data-count="4.0" data-decimals="1">0</div>
           <div class="stat-label">GPA</div>
         </div>
         <div class="stat-item">
@@ -419,8 +420,8 @@
           <div class="stat-label">Years Exp</div>
         </div>
         <div class="stat-item">
-          <div class="stat-num" data-count="25">0</div>
-          <div class="stat-label">% Faster Dev</div>
+          <div class="stat-num" style="font-size: 1.4rem;">Full-Stack</div>
+          <div class="stat-label">Developer</div>
         </div>
       </div>
 
@@ -485,7 +486,7 @@
   </section>
 
   <div class="footer">
-    <p>Built by Austin Howell &bull; <a href="mailto:austinhowell132324@gmail.com">austinhowell132324@gmail.com</a> &bull; <a href="https://linkedin.com/in/austin-howell-199609246" target="_blank" rel="noopener">LinkedIn</a></p>
+    <p>Built by Austin Howell &bull; <a href="mailto:AH132324@hotmail.com">AH132324@hotmail.com</a> &bull; <a href="https://linkedin.com/in/austin-howell-199609246" target="_blank" rel="noopener">LinkedIn</a></p>
   </div>
 
 <script>
@@ -674,7 +675,7 @@
   var phrases = [
     'Building production apps with React & Angular',
     'Full stack engineer at JB Hunt',
-    'University of Arkansas  |  4.0 GPA',
+    'University of Arkansas  |  Class of 2022  |  4.0 GPA',
     'Passionate about clean architecture & CI/CD',
     'Exploring AI agents & MCP servers',
     'Module Federation & micro-frontend enthusiast'
@@ -718,7 +719,8 @@
     statsDone = true;
     statNums.forEach(function(el){
       var target = parseFloat(el.getAttribute('data-count'));
-      var isFloat = target % 1 !== 0;
+      var decimals = el.getAttribute('data-decimals');
+      var decimalPlaces = decimals ? parseInt(decimals) : (target % 1 !== 0 ? 1 : 0);
       var current = 0;
       var step = target / 40;
       var interval = setInterval(function(){
@@ -727,7 +729,7 @@
           current = target;
           clearInterval(interval);
         }
-        el.textContent = isFloat ? current.toFixed(1) : Math.round(current);
+        el.textContent = decimalPlaces > 0 ? current.toFixed(decimalPlaces) : Math.round(current);
       }, 30);
     });
   }
@@ -755,7 +757,7 @@
 
   /* Knowledge base from Austin's resume */
   var kb = {
-    greeting: "Hey! I'm Austin Howell, a Software Engineer currently working at JB Hunt. I'm studying Computer Science at the University of Arkansas with a 4.0 GPA. What would you like to know about me?",
+    greeting: "Hey! I'm Austin Howell, a Software Engineer currently working at JB Hunt. I graduated from the University of Arkansas in 2022 with a 4.0 GPA in Computer Science. What would you like to know about me?",
 
     experience: "I've been a Software Engineer at JB Hunt since January 2023. I work on full-stack applications using Angular, React, and Azure DevOps. Before that, I was a Software Development Intern at CTTP in Fayetteville from 2018-2020 where I helped build their website. Most recently, I've also been doing consulting work since March 2025, leading a team of 2 to build a Vite React app with an embedded Power BI reporting portal.",
 
@@ -763,7 +765,7 @@
 
     skills: "My main tech stack includes TypeScript, JavaScript, Python, Angular, React, Redux, Vite, Cypress for testing, and Azure DevOps for CI/CD. I also work with Kafka, Elasticsearch, Module Federation for micro-frontends, Power BI, and Git. I'm big on clean architecture, agile methodologies, and REST APIs.",
 
-    education: "I'm studying Computer Science at the University of Arkansas with a 4.0 GPA, expected to graduate in May 2027. My coursework includes Data Structures, Algorithms, Software Engineering, Database Management, and Computer Networks.",
+    education: "I graduated with a Computer Science degree from the University of Arkansas in 2022 with a 4.0 GPA. My coursework included Data Structures, Algorithms, Software Engineering, Database Management, and Computer Networks.",
 
     projects: "I've got several projects I'm proud of! This personal platform site (austinshowell.dev), the Power BI Reporting Portal I built as a consultant, the AI Dev Agents I helped implement at JB Hunt, the Kafka Feature Pipeline I owned end-to-end, and the Module Federation Monorepo modernization. You can check them all out on my Projects page!",
 
@@ -777,9 +779,9 @@
 
     activities: "I'm a member of ACM (Association for Computing Machinery), participated in HackAR 2024, and I volunteer as a Code.org Hour of Code mentor to help teach kids programming. I love giving back to the community!",
 
-    contact: "You can reach me at austinhowell132324@gmail.com or connect with me on LinkedIn! I'm always happy to chat about software engineering, potential opportunities, or tech in general.",
+    contact: "You can reach me at AH132324@hotmail.com or connect with me on LinkedIn! I'm always happy to chat about software engineering, potential opportunities, or tech in general.",
 
-    hiring: "I'm always open to hearing about exciting opportunities! I'm passionate about building production-quality software, especially with React, Angular, and modern web technologies. If you have something interesting, feel free to reach out at austinhowell132324@gmail.com or connect on LinkedIn.",
+    hiring: "I'm always open to hearing about exciting opportunities! I'm passionate about building production-quality software, especially with React, Angular, and modern web technologies. If you have something interesting, feel free to reach out at AH132324@hotmail.com or connect on LinkedIn.",
 
     intern: "My first tech role was a Software Development Intern at CTTP in Fayetteville, AR from June 2018 to October 2020. I helped create the company website and an online classes application using the Symphony framework, working with HTML, CSS, and JavaScript.",
 
@@ -787,7 +789,7 @@
 
     hobbies: "Outside of coding, I'm a big gamer! I also enjoy building side projects and tinkering with new tech. Check out my Games page - I've got some browser games you can play right now!",
 
-    fallback: "That's a great question! I might not have a specific answer for that, but I'd love to chat more. Feel free to ask about my work experience, tech stack, projects, education, or anything else about my background. Or reach out to the real me at austinhowell132324@gmail.com!"
+    fallback: "That's a great question! I might not have a specific answer for that, but I'd love to chat more. Feel free to ask about my work experience, tech stack, projects, education, or anything else about my background. Or reach out to the real me at AH132324@hotmail.com!"
   };
 
   function matchResponse(input){
