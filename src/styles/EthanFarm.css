@@ -1100,6 +1100,44 @@
 .flower-6 { bottom: 16%; left: 75%; }
 .flower-6 .flower-petals { background: #FFD700; }
 
+/* ── "Go to House" button ── */
+.ethan-house-btn {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  background: #DAA520;
+  color: #3E2723;
+  border: 2px solid #8B6914;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-family: 'Georgia', serif;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  animation: bubble-pop 0.3s ease-out;
+  z-index: 25;
+  pointer-events: auto;
+}
+
+.ethan-house-btn:hover {
+  background: #FFD93D;
+  transform: translateX(-50%) scale(1.08);
+}
+
+/* Farmhouse highlight pulse */
+.farmhouse-highlight {
+  animation: house-glow 1s ease-in-out 3;
+}
+
+@keyframes house-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8)); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 600px) {
   .farm-title h1 { font-size: 1.4rem; }
