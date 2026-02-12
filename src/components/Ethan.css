@@ -4,7 +4,7 @@
 
 /* ── Container ── */
 .ethan-container {
-  position: fixed;
+  position: absolute;
   z-index: 9999;
   pointer-events: none;
   transform: translate(-24px, -64px);
@@ -527,4 +527,56 @@
 [data-theme="light"] .ethan-minimized {
   background: #ffffff;
   color: #1a1a2e;
+}
+
+/* ═══════════════════════════════════════
+   MESSING EFFECTS — applied to page elements
+   ═══════════════════════════════════════ */
+
+.ethan-messing-tilt {
+  transform: rotate(-8deg) !important;
+  display: inline-block;
+}
+
+.ethan-messing-shake {
+  animation: ethan-effect-shake 0.4s ease-in-out infinite !important;
+  display: inline-block;
+}
+@keyframes ethan-effect-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-2deg); }
+  75% { transform: translateX(5px) rotate(2deg); }
+}
+
+.ethan-messing-bounce {
+  animation: ethan-effect-bounce 0.5s ease-in-out infinite !important;
+  display: inline-block;
+}
+@keyframes ethan-effect-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.ethan-messing-flip {
+  transform: scaleX(-1) !important;
+  display: inline-block;
+}
+
+.ethan-messing-grow {
+  transform: scale(1.3) !important;
+  display: inline-block;
+}
+
+.ethan-messing-color {
+  color: #e94560 !important;
+  filter: hue-rotate(90deg) !important;
+}
+
+.ethan-messing-spin {
+  animation: ethan-effect-spin 1s ease-in-out 1 !important;
+  display: inline-block;
+}
+@keyframes ethan-effect-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

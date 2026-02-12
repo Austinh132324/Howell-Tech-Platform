@@ -74,6 +74,23 @@ const defaultQuips = [
   "I should get paid for this.",
 ]
 
+/* ── Quips when messing with elements ── */
+const messingQuips = [
+  "Oops! Let me just... fix that.",
+  "I touched it. It's mine now.",
+  "Hmm, this looks better tilted.",
+  "Just redecorating. You're welcome.",
+  "I'm an artist. This is art.",
+  "Don't worry, I'll put it back... probably.",
+  "This text was crooked. I'm helping.",
+  "Yoink! ...okay fine, here.",
+  "I wonder what happens if I...",
+  "Reorganizing! Don't panic!",
+  "*pokes text aggressively*",
+  "This looked at me funny.",
+  "Mine! ...okay, yours again.",
+]
+
 /* ── Chat responses ── */
 function getEthanResponse(input: string): string {
   const lower = input.toLowerCase().trim()
@@ -118,18 +135,64 @@ function getEthanResponse(input: string): string {
   return fallbacks[Math.floor(Math.random() * fallbacks.length)]
 }
 
-/* ── Movement targets ── */
+/* ── Page dimensions (full document, not just viewport) ── */
+function getPageSize() {
+  const body = document.body
+  const html = document.documentElement
+  const width = Math.max(body.scrollWidth, html.scrollWidth, html.clientWidth)
+  const height = Math.max(body.scrollHeight, html.scrollHeight, html.clientHeight)
+  return { width, height }
+}
+
+/* ── Random position on the full page ── */
 function getRandomPosition() {
   const padding = 80
-  const x = padding + Math.random() * (window.innerWidth - padding * 2)
-  const y = padding + Math.random() * (window.innerHeight - padding * 2)
+  const { width, height } = getPageSize()
+  const x = padding + Math.random() * (Math.max(width, window.innerWidth) - padding * 2)
+  const y = padding + Math.random() * (Math.max(height, window.innerHeight) - padding * 2)
   return { x, y }
+}
+
+/* ── Find interactable text elements ── */
+const TEXT_SELECTORS = 'h1, h2, h3, h4, p, a, span, button, li, td, th, label'
+const MESSING_EFFECTS = [
+  'ethan-messing-tilt',
+  'ethan-messing-shake',
+  'ethan-messing-bounce',
+  'ethan-messing-flip',
+  'ethan-messing-grow',
+  'ethan-messing-color',
+  'ethan-messing-spin',
+] as const
+
+function getInteractableElements(): HTMLElement[] {
+  const els = Array.from(document.querySelectorAll(TEXT_SELECTORS)) as HTMLElement[]
+  return els.filter(el => {
+    // Skip Ethan's own elements and hidden stuff
+    if (el.closest('.ethan-container, .ethan-chat, .ethan-bubble, .ethan-minimized')) return false
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return false
+    const text = el.textContent?.trim() || ''
+    if (text.length < 2 || text.length > 100) return false
+    return true
+  })
+}
+
+function getElementPagePosition(el: HTMLElement) {
+  const rect = el.getBoundingClientRect()
+  return {
+    x: rect.left + window.scrollX + rect.width / 2,
+    y: rect.top + window.scrollY + rect.height / 2,
+  }
 }
 
 /* ── Ethan component ── */
 export default function Ethan() {
   const location = useLocation()
-  const [pos, setPos] = useState({ x: window.innerWidth - 120, y: window.innerHeight - 160 })
+  const [pos, setPos] = useState(() => ({
+    x: window.innerWidth - 120 + window.scrollX,
+    y: window.innerHeight - 160 + window.scrollY,
+  }))
   const [targetPos, setTargetPos] = useState<{ x: number; y: number } | null>(null)
   const [facing, setFacing] = useState<'left' | 'right'>('left')
   const [animation, setAnimation] = useState<'idle' | 'walk' | 'jump' | 'wave'>('idle')
@@ -145,9 +208,21 @@ export default function Ethan() {
   const posRef = useRef(pos)
   const targetRef = useRef(targetPos)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const messTargetRef = useRef<HTMLElement | null>(null)
+  const messEffectRef = useRef<string | null>(null)
 
   useEffect(() => { posRef.current = pos }, [pos])
   useEffect(() => { targetRef.current = targetPos }, [targetPos])
+
+  /* ── Cleanup messed element ── */
+  const cleanupMessedElement = useCallback(() => {
+    if (messTargetRef.current && messEffectRef.current) {
+      messTargetRef.current.classList.remove(messEffectRef.current)
+      messTargetRef.current.style.transition = 'transform 0.5s ease, color 0.5s ease, filter 0.5s ease'
+      messTargetRef.current = null
+      messEffectRef.current = null
+    }
+  }, [])
 
   /* ── Show a quip in bubble ── */
   const showBubble = useCallback((text: string, duration = 4000) => {
@@ -156,6 +231,49 @@ export default function Ethan() {
     if (bubbleTimer.current) clearTimeout(bubbleTimer.current)
     bubbleTimer.current = setTimeout(() => setBubble(null), duration)
   }, [chatOpen])
+
+  /* ── Mess with an element ── */
+  const messWithElement = useCallback(() => {
+    cleanupMessedElement()
+
+    const elements = getInteractableElements()
+    if (elements.length === 0) return false
+
+    const el = elements[Math.floor(Math.random() * elements.length)]
+    const effect = MESSING_EFFECTS[Math.floor(Math.random() * MESSING_EFFECTS.length)]
+
+    // Store refs for cleanup
+    messTargetRef.current = el
+    messEffectRef.current = effect
+
+    // Get element's page position and walk toward it
+    const elPos = getElementPagePosition(el)
+    // Position Ethan next to the element (slightly to the side)
+    const offsetX = (Math.random() > 0.5 ? 1 : -1) * 50
+    const target = { x: elPos.x + offsetX, y: elPos.y + 20 }
+    setTargetPos(target)
+    const dx = target.x - posRef.current.x
+    setFacing(dx < 0 ? 'left' : 'right')
+    setAnimation('walk')
+
+    // After walking to it, apply the effect
+    const dist = Math.sqrt((target.x - posRef.current.x) ** 2 + (target.y - posRef.current.y) ** 2)
+    const walkTime = Math.min(3000, Math.max(800, dist * 3))
+
+    setTimeout(() => {
+      // Apply the messing effect
+      el.style.transition = 'transform 0.3s ease, color 0.3s ease, filter 0.3s ease'
+      el.classList.add(effect)
+      showBubble(messingQuips[Math.floor(Math.random() * messingQuips.length)], 3000)
+
+      // Put it back after a few seconds
+      setTimeout(() => {
+        cleanupMessedElement()
+      }, 2500 + Math.random() * 2000)
+    }, walkTime)
+
+    return true
+  }, [cleanupMessedElement, showBubble])
 
   /* ── Random quips on a timer ── */
   useEffect(() => {
@@ -174,20 +292,39 @@ export default function Ethan() {
     const path = location.pathname
     const quips = pageQuips[path] || defaultQuips
     setTimeout(() => showBubble(quips[Math.floor(Math.random() * quips.length)]), 1000)
-  }, [location.pathname, showBubble])
+    // Reset position to visible area on page change
+    setPos({
+      x: window.innerWidth - 120 + window.scrollX,
+      y: window.innerHeight - 160 + window.scrollY,
+    })
+    // Cleanup any messed elements on page change
+    cleanupMessedElement()
+  }, [location.pathname, showBubble, cleanupMessedElement])
 
-  /* ── Random movement ── */
+  /* ── Random movement + text interaction ── */
   useEffect(() => {
+    let moveCount = 0
+
     function scheduleMove() {
       const delay = 4000 + Math.random() * 8000
       moveTimer.current = setTimeout(() => {
         if (chatOpen) { scheduleMove(); return }
+
+        moveCount++
+
+        // Every 3rd-5th move, mess with an element instead of random walk
+        const shouldMess = moveCount % (3 + Math.floor(Math.random() * 3)) === 0
+        if (shouldMess && messWithElement()) {
+          scheduleMove()
+          return
+        }
+
+        // Normal random movement
         const target = getRandomPosition()
         setTargetPos(target)
         const dx = target.x - posRef.current.x
         setFacing(dx < 0 ? 'left' : 'right')
 
-        // Randomly decide: walk or jump
         const willJump = Math.random() > 0.5
         setAnimation(willJump ? 'jump' : 'walk')
 
@@ -196,7 +333,7 @@ export default function Ethan() {
     }
     scheduleMove()
     return () => { if (moveTimer.current) clearTimeout(moveTimer.current) }
-  }, [chatOpen])
+  }, [chatOpen, messWithElement])
 
   /* ── Animate toward target ── */
   useEffect(() => {
