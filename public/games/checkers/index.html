@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Checkers - Howell Tech</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0b0b1a;
+    color: #e0e0e0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 12px;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  a { color: #e94560; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .top-bar {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .back-link { font-size: 0.95rem; }
+  .back-link::before { content: '\2190 '; }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #e94560, #533483);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .status-bar {
+    font-size: 0.95rem;
+    color: #a0a0b8;
+    margin-bottom: 10px;
+    min-height: 1.4em;
+    text-align: center;
+    transition: color 0.2s;
+  }
+  .status-bar.your-turn { color: #e94560; }
+  .status-bar.thinking { color: #533483; }
+  .status-bar.game-over { color: #e94560; font-weight: 600; }
+
+  .score-bar {
+    display: flex;
+    gap: 24px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: #a0a0b8;
+  }
+  .score-bar span { display: flex; align-items: center; gap: 6px; }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%; display: inline-block;
+  }
+  .dot.red { background: #e94560; }
+  .dot.black { background: #1a1a2e; border: 2px solid #a0a0b8; }
+
+  .board-container {
+    position: relative;
+    width: min(90vw, 480px);
+    height: min(90vw, 480px);
+    margin-bottom: 14px;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 30px rgba(233, 69, 96, 0.15), 0 0 60px rgba(83, 52, 131, 0.1);
+    cursor: pointer;
+    display: block;
+  }
+
+  .btn {
+    background: linear-gradient(135deg, #e94560, #533483);
+    color: #fff;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.9; }
+  .btn:active { transform: scale(0.97); }
+
+  .footer {
+    margin-top: auto;
+    padding-top: 20px;
+    font-size: 0.8rem;
+    color: #a0a0b8;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="/games/" class="back-link">Back to Games</a>
+</div>
+
+<h1>Checkers</h1>
+
+<div class="score-bar">
+  <span><span class="dot red"></span> You: <strong id="redScore">12</strong></span>
+  <span><span class="dot black"></span> AI: <strong id="blackScore">12</strong></span>
+</div>
+
+<div class="status-bar your-turn" id="status">Your turn &mdash; select a piece</div>
+
+<div class="board-container">
+  <canvas id="board"></canvas>
+</div>
+
+<button class="btn" id="newGameBtn">New Game</button>
+
+<div class="footer">Red moves first. Jumps are mandatory.</div>
+
+<script>
+(function() {
+  "use strict";
+
+  // ---- Constants ----
+  const EMPTY = 0, RED = 1, BLACK = 2, RED_KING = 3, BLACK_KING = 4;
+  const ROWS = 8, COLS = 8;
+  const AI_DEPTH = 5;
+
+  // Colors
+  const C_LIGHT_SQ  = '#1a1a2e';
+  const C_DARK_SQ   = '#16213e';
+  const C_RED        = '#e94560';
+  const C_RED_KING   = '#ff6b81';
+  const C_BLACK      = '#2c2c54';
+  const C_BLACK_EDGE = '#a0a0b8';
+  const C_HIGHLIGHT  = 'rgba(233,69,96,0.35)';
+  const C_VALID      = 'rgba(83,52,131,0.55)';
+  const C_SELECTED   = 'rgba(233,69,96,0.5)';
+  const C_CROWN      = '#ffd700';
+
+  // ---- State ----
+  let board, turn, selected, validMoves, gameOver, aiThinking;
+
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  const statusEl = document.getElementById('status');
+  const redScoreEl = document.getElementById('redScore');
+  const blackScoreEl = document.getElementById('blackScore');
+
+  function initBoard() {
+    board = Array.from({length: ROWS}, () => Array(COLS).fill(EMPTY));
+    // Black pieces top 3 rows
+    for (let r = 0; r < 3; r++)
+      for (let c = 0; c < COLS; c++)
+        if ((r + c) % 2 === 1) board[r][c] = BLACK;
+    // Red pieces bottom 3 rows
+    for (let r = 5; r < 8; r++)
+      for (let c = 0; c < COLS; c++)
+        if ((r + c) % 2 === 1) board[r][c] = RED;
+  }
+
+  function newGame() {
+    initBoard();
+    turn = RED;
+    selected = null;
+    validMoves = [];
+    gameOver = false;
+    aiThinking = false;
+    updateScores();
+    setStatus('Your turn \u2014 select a piece', 'your-turn');
+    draw();
+  }
+
+  // ---- Helpers ----
+  function isRed(p) { return p === RED || p === RED_KING; }
+  function isBlack(p) { return p === BLACK || p === BLACK_KING; }
+  function isKing(p) { return p === RED_KING || p === BLACK_KING; }
+  function owner(p) { return isRed(p) ? RED : isBlack(p) ? BLACK : EMPTY; }
+
+  function cloneBoard(b) { return b.map(r => r.slice()); }
+
+  function dirs(piece) {
+    if (piece === RED) return [[-1,-1],[-1,1]];
+    if (piece === BLACK) return [[1,-1],[1,1]];
+    return [[-1,-1],[-1,1],[1,-1],[1,1]]; // kings
+  }
+
+  function inBounds(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+  // ---- Move Generation ----
+  function getJumps(b, r, c) {
+    const piece = b[r][c];
+    const opp = isRed(piece) ? BLACK : RED;
+    const jumps = [];
+    for (const [dr, dc] of dirs(piece)) {
+      const mr = r + dr, mc = c + dc;
+      const lr = r + 2*dr, lc = c + 2*dc;
+      if (inBounds(lr, lc) && owner(b[mr][mc]) === opp && b[lr][lc] === EMPTY) {
+        jumps.push({fr: r, fc: c, tr: lr, tc: lc, mid: [{r: mr, c: mc}]});
+      }
+    }
+    return jumps;
+  }
+
+  // Multi-jump: returns array of full jump sequences
+  function getMultiJumps(b, r, c) {
+    const results = [];
+    function dfs(board, row, col, chain) {
+      const jumps = getJumps(board, row, col);
+      if (jumps.length === 0) {
+        if (chain.length > 0) results.push(chain.slice());
+        return;
+      }
+      for (const j of jumps) {
+        const nb = cloneBoard(board);
+        nb[j.tr][j.tc] = nb[row][col];
+        nb[row][col] = EMPTY;
+        nb[j.mid[0].r][j.mid[0].c] = EMPTY;
+        // Promote if reaching end
+        if (j.tr === 0 && nb[j.tr][j.tc] === RED) nb[j.tr][j.tc] = RED_KING;
+        if (j.tr === 7 && nb[j.tr][j.tc] === BLACK) nb[j.tr][j.tc] = BLACK_KING;
+        const wasKing = isKing(b[r][c]);
+        const nowKing = isKing(nb[j.tr][j.tc]);
+        chain.push(j);
+        // If piece just got kinged mid-jump, stop (standard rules)
+        if (!wasKing && nowKing) {
+          results.push(chain.slice());
+        } else {
+          dfs(nb, j.tr, j.tc, chain);
+        }
+        chain.pop();
+      }
+    }
+    dfs(b, r, c, []);
+    return results;
+  }
+
+  function getSimpleMoves(b, r, c) {
+    const piece = b[r][c];
+    const moves = [];
+    for (const [dr, dc] of dirs(piece)) {
+      const nr = r + dr, nc = c + dc;
+      if (inBounds(nr, nc) && b[nr][nc] === EMPTY)
+        moves.push({fr: r, fc: c, tr: nr, tc: nc, mid: []});
+    }
+    return moves;
+  }
+
+  // All legal moves for a side: jump sequences or simple moves
+  function allMoves(b, side) {
+    let jumpSeqs = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if (owner(b[r][c]) === side) {
+          const mj = getMultiJumps(b, r, c);
+          for (const seq of mj) jumpSeqs.push(seq);
+        }
+    if (jumpSeqs.length > 0) return {jumps: true, moves: jumpSeqs};
+
+    let simples = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        if (owner(b[r][c]) === side) {
+          const sm = getSimpleMoves(b, r, c);
+          for (const m of sm) simples.push([m]);
+        }
+    return {jumps: false, moves: simples};
+  }
+
+  // Apply a move sequence to a board (returns new board)
+  function applySeq(b, seq) {
+    const nb = cloneBoard(b);
+    let r = seq[0].fr, c = seq[0].fc;
+    const piece = nb[r][c];
+    nb[r][c] = EMPTY;
+    for (const step of seq) {
+      for (const m of step.mid) nb[m.r][m.c] = EMPTY;
+      r = step.tr; c = step.tc;
+    }
+    nb[r][c] = piece;
+    if (r === 0 && nb[r][c] === RED) nb[r][c] = RED_KING;
+    if (r === 7 && nb[r][c] === BLACK) nb[r][c] = BLACK_KING;
+    return nb;
+  }
+
+  // ---- AI (Minimax with Alpha-Beta) ----
+  function evaluate(b) {
+    let score = 0;
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        const p = b[r][c];
+        if (p === EMPTY) continue;
+        const val = isKing(p) ? 5 : 3;
+        // Positional bonus: advancement
+        const adv = isRed(p) ? (7 - r) * 0.1 : r * 0.1;
+        // Center control
+        const cen = (c >= 2 && c <= 5) ? 0.2 : 0;
+        // Back row bonus for non-kings (defensive)
+        const back = (!isKing(p) && ((isRed(p) && r === 7) || (isBlack(p) && r === 0))) ? 0.4 : 0;
+        const total = val + adv + cen + back;
+        score += isBlack(p) ? total : -total;
+      }
+    return score; // positive = good for BLACK (AI)
+  }
+
+  function minimax(b, depth, alpha, beta, maximizing) {
+    const side = maximizing ? BLACK : RED;
+    const {moves} = allMoves(b, side);
+    if (moves.length === 0) return maximizing ? -1000 : 1000;
+    if (depth === 0) return evaluate(b);
+
+    if (maximizing) {
+      let best = -Infinity;
+      for (const seq of moves) {
+        const nb = applySeq(b, seq);
+        const val = minimax(nb, depth - 1, alpha, beta, false);
+        best = Math.max(best, val);
+        alpha = Math.max(alpha, val);
+        if (beta <= alpha) break;
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for (const seq of moves) {
+        const nb = applySeq(b, seq);
+        const val = minimax(nb, depth - 1, alpha, beta, true);
+        best = Math.min(best, val);
+        beta = Math.min(beta, val);
+        if (beta <= alpha) break;
+      }
+      return best;
+    }
+  }
+
+  function aiBestMove() {
+    const {moves} = allMoves(board, BLACK);
+    if (moves.length === 0) return null;
+    if (moves.length === 1) return moves[0];
+
+    let bestVal = -Infinity, bestMove = moves[0];
+    // Shuffle for variety
+    const shuffled = moves.slice().sort(() => Math.random() - 0.5);
+    for (const seq of shuffled) {
+      const nb = applySeq(board, seq);
+      const val = minimax(nb, AI_DEPTH - 1, -Infinity, Infinity, false);
+      if (val > bestVal) { bestVal = val; bestMove = seq; }
+    }
+    return bestMove;
+  }
+
+  // ---- Drawing ----
+  let cellSize;
+
+  function resizeCanvas() {
+    const container = canvas.parentElement;
+    const size = container.clientWidth;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cellSize = size / COLS;
+    draw();
+  }
+
+  function draw() {
+    const s = cellSize;
+    const dispSize = canvas.width / (window.devicePixelRatio || 1);
+    ctx.clearRect(0, 0, dispSize, dispSize);
+
+    // Draw squares
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        ctx.fillStyle = (r + c) % 2 === 0 ? C_LIGHT_SQ : C_DARK_SQ;
+        ctx.fillRect(c * s, r * s, s, s);
+      }
+
+    // Highlight valid move targets
+    for (const vm of validMoves) {
+      const seq = vm.seq;
+      const last = seq[seq.length - 1];
+      ctx.fillStyle = C_VALID;
+      ctx.fillRect(last.tc * s, last.tr * s, s, s);
+    }
+
+    // Highlight selected piece
+    if (selected) {
+      ctx.fillStyle = C_SELECTED;
+      ctx.fillRect(selected.c * s, selected.r * s, s, s);
+    }
+
+    // Draw pieces
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) {
+        const p = board[r][c];
+        if (p === EMPTY) continue;
+        drawPiece(c * s + s/2, r * s + s/2, s * 0.38, p);
+      }
+  }
+
+  function drawPiece(cx, cy, radius, piece) {
+    // Shadow
+    ctx.beginPath();
+    ctx.arc(cx + 2, cy + 2, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fill();
+
+    // Body
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    if (isRed(piece)) {
+      const g = ctx.createRadialGradient(cx - radius*0.3, cy - radius*0.3, radius*0.1, cx, cy, radius);
+      g.addColorStop(0, '#ff7b93');
+      g.addColorStop(1, C_RED);
+      ctx.fillStyle = g;
+    } else {
+      const g = ctx.createRadialGradient(cx - radius*0.3, cy - radius*0.3, radius*0.1, cx, cy, radius);
+      g.addColorStop(0, '#3d3d6b');
+      g.addColorStop(1, C_BLACK);
+      ctx.fillStyle = g;
+    }
+    ctx.fill();
+
+    // Edge ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius - 2, 0, Math.PI * 2);
+    ctx.strokeStyle = isRed(piece) ? 'rgba(255,255,255,0.2)' : C_BLACK_EDGE;
+    ctx.lineWidth = isBlack(piece) ? 2 : 1.5;
+    ctx.stroke();
+
+    // Inner ring for depth
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.7, 0, Math.PI * 2);
+    ctx.strokeStyle = isRed(piece) ? 'rgba(255,255,255,0.1)' : 'rgba(160,160,184,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Crown for kings
+    if (isKing(piece)) {
+      ctx.save();
+      ctx.translate(cx, cy);
+      const cs = radius * 0.45;
+      ctx.strokeStyle = C_CROWN;
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-cs, cs * 0.3);
+      ctx.lineTo(-cs, -cs * 0.3);
+      ctx.lineTo(-cs * 0.5, cs * 0.1);
+      ctx.lineTo(0, -cs * 0.5);
+      ctx.lineTo(cs * 0.5, cs * 0.1);
+      ctx.lineTo(cs, -cs * 0.3);
+      ctx.lineTo(cs, cs * 0.3);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,215,0,0.2)';
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ---- Interaction ----
+  function setStatus(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className = 'status-bar ' + (cls || '');
+  }
+
+  function updateScores() {
+    let r = 0, b = 0;
+    for (let row = 0; row < ROWS; row++)
+      for (let col = 0; col < COLS; col++) {
+        if (isRed(board[row][col])) r++;
+        if (isBlack(board[row][col])) b++;
+      }
+    redScoreEl.textContent = r;
+    blackScoreEl.textContent = b;
+  }
+
+  function checkGameOver() {
+    const rm = allMoves(board, RED);
+    const bm = allMoves(board, BLACK);
+    if (rm.moves.length === 0 && bm.moves.length === 0) {
+      gameOver = true;
+      setStatus('Draw!', 'game-over');
+      return true;
+    }
+    if (rm.moves.length === 0) {
+      gameOver = true;
+      setStatus('AI wins! Better luck next time.', 'game-over');
+      return true;
+    }
+    if (bm.moves.length === 0) {
+      gameOver = true;
+      setStatus('You win! Congratulations!', 'game-over');
+      return true;
+    }
+    return false;
+  }
+
+  function getCell(e) {
+    const rect = canvas.getBoundingClientRect();
+    let x, y;
+    if (e.touches) {
+      x = e.touches[0].clientX - rect.left;
+      y = e.touches[0].clientY - rect.top;
+    } else {
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+    const scale = rect.width / (canvas.width / (window.devicePixelRatio || 1));
+    return {
+      r: Math.floor(y / (cellSize * scale)),
+      c: Math.floor(x / (cellSize * scale))
+    };
+  }
+
+  function handleClick(e) {
+    if (gameOver || aiThinking || turn !== RED) return;
+    e.preventDefault();
+    const {r, c} = getCell(e);
+    if (!inBounds(r, c)) return;
+
+    // Check if clicked a valid move destination
+    for (const vm of validMoves) {
+      const last = vm.seq[vm.seq.length - 1];
+      if (last.tr === r && last.tc === c) {
+        executeMove(vm.seq);
+        return;
+      }
+    }
+
+    // Select a piece
+    if (isRed(board[r][c])) {
+      selectPiece(r, c);
+    } else {
+      selected = null;
+      validMoves = [];
+      draw();
+    }
+  }
+
+  function selectPiece(r, c) {
+    const {jumps, moves} = allMoves(board, RED);
+    // Filter moves for this piece
+    const pieceMoves = moves.filter(seq => seq[0].fr === r && seq[0].fc === c);
+    if (pieceMoves.length === 0) {
+      // If there are mandatory jumps elsewhere, hint
+      if (jumps && moves.length > 0) {
+        setStatus('You must jump!', 'your-turn');
+      }
+      selected = null;
+      validMoves = [];
+      draw();
+      return;
+    }
+    selected = {r, c};
+    validMoves = pieceMoves.map(seq => ({seq}));
+    draw();
+  }
+
+  function executeMove(seq) {
+    board = applySeq(board, seq);
+    selected = null;
+    validMoves = [];
+    updateScores();
+    draw();
+
+    if (checkGameOver()) return;
+
+    turn = BLACK;
+    setStatus('AI is thinking...', 'thinking');
+    aiThinking = true;
+    draw();
+
+    // Delay for UX
+    setTimeout(runAI, 300);
+  }
+
+  function runAI() {
+    const move = aiBestMove();
+    if (!move) {
+      gameOver = true;
+      setStatus('You win! Congratulations!', 'game-over');
+      aiThinking = false;
+      draw();
+      return;
+    }
+
+    // Animate AI move
+    board = applySeq(board, move);
+    updateScores();
+    aiThinking = false;
+    turn = RED;
+    draw();
+
+    if (checkGameOver()) return;
+    setStatus('Your turn \u2014 select a piece', 'your-turn');
+  }
+
+  // ---- Events ----
+  canvas.addEventListener('click', handleClick);
+  canvas.addEventListener('touchstart', handleClick, {passive: false});
+  document.getElementById('newGameBtn').addEventListener('click', newGame);
+  window.addEventListener('resize', resizeCanvas);
+
+  // ---- Init ----
+  newGame();
+  resizeCanvas();
+})();
+</script>
+</body>
+</html>
