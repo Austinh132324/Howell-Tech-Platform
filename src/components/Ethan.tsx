@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import './Ethan.css'
 
 /* ── Sassy quips by page ── */
@@ -99,33 +99,41 @@ const messingQuips = [
 ]
 
 /* ── Chat responses ── */
-function getEthanResponse(input: string): string {
+interface EthanResponse {
+  text: string
+  navigateTo?: string
+}
+
+function getEthanResponse(input: string): EthanResponse {
   const lower = input.toLowerCase().trim()
 
-  if (lower === '' ) return "Cat got your tongue?"
-  if (/^(hi|hey|hello|sup|yo)/.test(lower)) return "Hey hey! What's up? 👋"
-  if (/how are you/.test(lower)) return "I'm a pixel art guy living in a browser. Living the dream!"
-  if (/your name/.test(lower)) return "I'm Ethan! The E is silent. Just kidding, it's not."
-  if (/who made you/.test(lower)) return "Austin did. But between us, I made myself."
-  if (/meaning of life/.test(lower)) return "42. Next question."
-  if (/joke/.test(lower)) return "Why do programmers prefer dark mode? Because light attracts bugs! 🐛"
-  if (/favorite/.test(lower) && /game/.test(lower)) return "Checkers. I'm undefeated. (I don't have hands to play, but still.)"
-  if (/love/.test(lower)) return "I love you too. In a platonic, pixel-to-human way."
-  if (/bye|goodbye|see ya/.test(lower)) return "Leaving already?! Fine. I'll just... jump around alone. 😢"
-  if (/help/.test(lower)) return "Try clicking around the site! There are games, tools, and cool stuff everywhere."
-  if (/ugly|dumb|stupid|hate/.test(lower)) return "Wow. Rude. I'm telling Austin."
-  if (/secret/.test(lower)) return "🤫 If I told you, it wouldn't be a secret."
-  if (/age|old/.test(lower)) return "I was born when you loaded this page. So... pretty young."
-  if (/austin/.test(lower)) return "Austin? Great guy. Owes me rent though."
-  if (/ethan/.test(lower)) return "That's me! The one and only. ✨"
-  if (/cool/.test(lower)) return "I know I'm cool. Thanks for noticing."
-  if (/bored/.test(lower)) return "Go play Snake! Or Tetris! Or just talk to me more. I'm needy."
-  if (/thank/.test(lower)) return "You're welcome! I accept payment in cookies. 🍪"
-  if (/weather/.test(lower)) return "It's always sunny inside a browser! ☀️"
-  if (/sing/.test(lower)) return "🎵 Never gonna give you up, never gonna let you down... 🎵"
-  if (/dance/.test(lower)) return "*does a little pixel dance* 💃 You can't see it but trust me it's epic."
-  if (/food|hungry|eat/.test(lower)) return "I survive on pure CSS energy. Nom nom."
-  if (/sleep|tired/.test(lower)) return "Sleep? I don't sleep. I watch. Always."
+  if (lower === '' ) return { text: "Cat got your tongue?" }
+  if (/where.*(home|house|live|farm)/.test(lower) || (/home|farm/.test(lower) && /where|go|show|take|visit/.test(lower))) {
+    return { text: "My home? Come on, I'll show you my farm! 🏡", navigateTo: '/ethan-farm' }
+  }
+  if (/^(hi|hey|hello|sup|yo)/.test(lower)) return { text: "Hey hey! What's up? 👋" }
+  if (/how are you/.test(lower)) return { text: "I'm a pixel art guy living in a browser. Living the dream!" }
+  if (/your name/.test(lower)) return { text: "I'm Ethan! The E is silent. Just kidding, it's not." }
+  if (/who made you/.test(lower)) return { text: "Austin did. But between us, I made myself." }
+  if (/meaning of life/.test(lower)) return { text: "42. Next question." }
+  if (/joke/.test(lower)) return { text: "Why do programmers prefer dark mode? Because light attracts bugs! 🐛" }
+  if (/favorite/.test(lower) && /game/.test(lower)) return { text: "Checkers. I'm undefeated. (I don't have hands to play, but still.)" }
+  if (/love/.test(lower)) return { text: "I love you too. In a platonic, pixel-to-human way." }
+  if (/bye|goodbye|see ya/.test(lower)) return { text: "Leaving already?! Fine. I'll just... jump around alone. 😢" }
+  if (/help/.test(lower)) return { text: "Try clicking around the site! There are games, tools, and cool stuff everywhere." }
+  if (/ugly|dumb|stupid|hate/.test(lower)) return { text: "Wow. Rude. I'm telling Austin." }
+  if (/secret/.test(lower)) return { text: "🤫 If I told you, it wouldn't be a secret." }
+  if (/age|old/.test(lower)) return { text: "I was born when you loaded this page. So... pretty young." }
+  if (/austin/.test(lower)) return { text: "Austin? Great guy. Owes me rent though." }
+  if (/ethan/.test(lower)) return { text: "That's me! The one and only. ✨" }
+  if (/cool/.test(lower)) return { text: "I know I'm cool. Thanks for noticing." }
+  if (/bored/.test(lower)) return { text: "Go play Snake! Or Tetris! Or just talk to me more. I'm needy." }
+  if (/thank/.test(lower)) return { text: "You're welcome! I accept payment in cookies. 🍪" }
+  if (/weather/.test(lower)) return { text: "It's always sunny inside a browser! ☀️" }
+  if (/sing/.test(lower)) return { text: "🎵 Never gonna give you up, never gonna let you down... 🎵" }
+  if (/dance/.test(lower)) return { text: "*does a little pixel dance* 💃 You can't see it but trust me it's epic." }
+  if (/food|hungry|eat/.test(lower)) return { text: "I survive on pure CSS energy. Nom nom." }
+  if (/sleep|tired/.test(lower)) return { text: "Sleep? I don't sleep. I watch. Always." }
 
   const fallbacks = [
     "Interesting... tell me more.",
@@ -139,7 +147,7 @@ function getEthanResponse(input: string): string {
     "I'm going to need a minute to process that one.",
     "Did you try turning it off and on again?",
   ]
-  return fallbacks[Math.floor(Math.random() * fallbacks.length)]
+  return { text: fallbacks[Math.floor(Math.random() * fallbacks.length)] }
 }
 
 /* ── Page dimensions (full document, not just viewport) ── */
@@ -196,6 +204,7 @@ function getElementPagePosition(el: HTMLElement) {
 /* ── Ethan component ── */
 export default function Ethan() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [pos, setPos] = useState(() => ({
     x: window.innerWidth - 120 + window.scrollX,
     y: window.innerHeight - 160 + window.scrollY,
@@ -400,8 +409,12 @@ export default function Ethan() {
     const userMsg = chatInput.trim()
     setChatInput('')
     setChatMessages(prev => [...prev, { from: 'user', text: userMsg }])
+    const response = getEthanResponse(userMsg)
     setTimeout(() => {
-      setChatMessages(prev => [...prev, { from: 'ethan', text: getEthanResponse(userMsg) }])
+      setChatMessages(prev => [...prev, { from: 'ethan', text: response.text }])
+      if (response.navigateTo) {
+        setTimeout(() => navigate(response.navigateTo!), 1200)
+      }
     }, 300 + Math.random() * 500)
   }
 
