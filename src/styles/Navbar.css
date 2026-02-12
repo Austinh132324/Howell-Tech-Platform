@@ -8,5 +8,12 @@
 }
 .top-bar a { color: #a0a0b8; text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
 .top-bar a:hover { color: #e94560; }
+.nav-right { display: flex; align-items: center; gap: 20px; }
 .nav-links { display: flex; gap: 20px; }
 .nav-links a { font-size: 0.85rem; }
+.theme-toggle {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 1rem;
+  color: #a0a0b8; transition: all 0.2s; line-height: 1;
+}
+.theme-toggle:hover { border-color: #e94560; color: #e94560; }

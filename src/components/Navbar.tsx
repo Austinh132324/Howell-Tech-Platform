@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTheme } from '../lib/utils/theme'
 import '../styles/Navbar.css'
 
 interface NavbarProps {
@@ -6,16 +7,23 @@ interface NavbarProps {
 }
 
 export default function Navbar({ links }: NavbarProps) {
+  const { theme, toggleTheme } = useTheme()
+
   return (
     <div className="top-bar">
       <Link to="/">&larr; Home</Link>
-      {links && (
-        <div className="nav-links">
-          {links.map((l) => (
-            <a key={l.href} href={l.href}>{l.label}</a>
-          ))}
-        </div>
-      )}
+      <div className="nav-right">
+        {links && (
+          <div className="nav-links">
+            {links.map((l) => (
+              <a key={l.href} href={l.href}>{l.label}</a>
+            ))}
+          </div>
+        )}
+        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+          {theme === 'dark' ? '\u2600' : '\u263D'}
+        </button>
+      </div>
     </div>
   )
 }
