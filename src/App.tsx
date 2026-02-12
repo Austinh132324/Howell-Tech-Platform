@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import Ethan from './components/Ethan'
 import Home from './pages/Home'
 import AboutMe from './pages/AboutMe'
 import Projects from './pages/Projects'
@@ -28,6 +29,7 @@ export default function App() {
   return (
     <HashRouter>
       <PageTracker />
+      <Ethan />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/aboutme" element={<AboutMe />} />
