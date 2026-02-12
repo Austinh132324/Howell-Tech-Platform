@@ -85,6 +85,7 @@ export default function EthanFarm() {
   const [bubble, setBubble] = useState<string | null>(null)
   const [showHouseButton, setShowHouseButton] = useState(false)
   const [houseHighlight, setHouseHighlight] = useState(false)
+  const [chatInput, setChatInput] = useState('')
 
   const posRef = useRef(ethanPos)
   const targetRef = useRef(targetWaypoint)
@@ -179,15 +180,25 @@ export default function EthanFarm() {
     return () => cancelAnimationFrame(animRef.current)
   }, [showBubble])
 
-  // Ask Ethan where his house is
-  const handleAskHouse = useCallback(() => {
-    if (showHouseButton) return
-    showBubble("Where is your house?", 2000)
-    setTimeout(() => {
+  // Handle chat submission
+  const handleChatSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    const question = chatInput.trim().toLowerCase()
+    setChatInput('')
+    if (!question) return
+
+    if (question.includes('where') && question.includes('house')) {
       showBubble("My house? Right this way!", 3500)
       setShowHouseButton(true)
-    }, 2200)
-  }, [showBubble, showHouseButton])
+    } else {
+      const fallbacks = [
+        "Hmm, not sure about that one!",
+        "Try asking me where my house is!",
+        "I only know about my farm...",
+      ]
+      showBubble(fallbacks[Math.floor(Math.random() * fallbacks.length)])
+    }
+  }, [chatInput, showBubble])
 
   // Navigate Ethan to the farmhouse
   const handleGoToHouse = useCallback(() => {
@@ -420,23 +431,12 @@ export default function EthanFarm() {
           left: `${ethanPos.x}%`,
           top: `${ethanPos.y}%`,
           transform: `translate(-50%, -50%)${facing === 'left' ? ' scaleX(-1)' : ''}`,
-          cursor: 'pointer',
         }}
-        onClick={handleAskHouse}
       >
         {bubble && (
           <div className="ethan-farm-bubble" style={facing === 'left' ? { transform: 'translateX(-50%) scaleX(-1)' } : undefined}>
             {bubble}
           </div>
-        )}
-        {showHouseButton && (
-          <button
-            className="ethan-house-btn"
-            style={facing === 'left' ? { transform: 'translateX(-50%) scaleX(-1)' } : undefined}
-            onClick={(e) => { e.stopPropagation(); handleGoToHouse(); }}
-          >
-            Go to House
-          </button>
         )}
         <div className="ef-hat" />
         <div className="ef-hat-brim" />
@@ -455,6 +455,25 @@ export default function EthanFarm() {
         <div className="ef-boot-r" />
         <div className="ef-shadow" />
       </div>
+
+      {/* Chat input */}
+      <form className="farm-chat" onSubmit={handleChatSubmit}>
+        <input
+          className="farm-chat-input"
+          type="text"
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          placeholder="Ask Ethan something..."
+        />
+        <button className="farm-chat-send" type="submit">Ask</button>
+      </form>
+
+      {/* Go to House button */}
+      {showHouseButton && (
+        <button className="ethan-house-btn" onClick={handleGoToHouse}>
+          Go to House
+        </button>
+      )}
     </div>
   )
 }
