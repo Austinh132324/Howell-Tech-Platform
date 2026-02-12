@@ -97,14 +97,14 @@ export default function Home() {
         if (step >= steps) {
           setGpaCount(4.0)
           setProjectsCount(5)
-          setYearsCount(3)
+          setYearsCount(8)
           clearInterval(countInterval)
           return
         }
         const progress = step / steps
         setGpaCount(parseFloat((4.0 * progress).toFixed(1)))
         setProjectsCount(Math.round(5 * progress))
-        setYearsCount(Math.round(3 * progress))
+        setYearsCount(Math.round(8 * progress))
       }, interval)
     }, 1200)
 
