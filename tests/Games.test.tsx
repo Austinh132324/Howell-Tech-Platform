@@ -22,6 +22,6 @@ describe('Games', () => {
         <Games />
       </MemoryRouter>
     )
-    expect(screen.getByText('Games')).toBeInTheDocument()
+    expect(screen.getByText('Arcade')).toBeInTheDocument()
   })
 })
