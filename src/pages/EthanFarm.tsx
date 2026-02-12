@@ -83,6 +83,8 @@ export default function EthanFarm() {
   const [facing, setFacing] = useState<'left' | 'right'>('right')
   const [isWalking, setIsWalking] = useState(false)
   const [bubble, setBubble] = useState<string | null>(null)
+  const [showHouseButton, setShowHouseButton] = useState(false)
+  const [houseHighlight, setHouseHighlight] = useState(false)
 
   const posRef = useRef(ethanPos)
   const targetRef = useRef(targetWaypoint)
@@ -177,6 +179,30 @@ export default function EthanFarm() {
     return () => cancelAnimationFrame(animRef.current)
   }, [showBubble])
 
+  // Ask Ethan where his house is
+  const handleAskHouse = useCallback(() => {
+    if (showHouseButton) return
+    showBubble("Where is your house?", 2000)
+    setTimeout(() => {
+      showBubble("My house? Right this way!", 3500)
+      setShowHouseButton(true)
+    }, 2200)
+  }, [showBubble, showHouseButton])
+
+  // Navigate Ethan to the farmhouse
+  const handleGoToHouse = useCallback(() => {
+    setShowHouseButton(false)
+    const farmhouseIdx = WAYPOINTS.findIndex(wp => wp.label === 'farmhouse')
+    if (farmhouseIdx === -1) return
+    const wp = WAYPOINTS[farmhouseIdx]
+    setTargetWaypoint(farmhouseIdx)
+    setFacing(wp.x < posRef.current.x ? 'left' : 'right')
+    setIsWalking(true)
+    setHouseHighlight(true)
+    showBubble("There's no place like home!", 4000)
+    setTimeout(() => setHouseHighlight(false), 5000)
+  }, [showBubble])
+
   // Cleanup
   useEffect(() => {
     return () => {
@@ -237,7 +263,7 @@ export default function EthanFarm() {
       </div>
 
       {/* Farmhouse */}
-      <div className="farmhouse">
+      <div className={`farmhouse${houseHighlight ? ' farmhouse-highlight' : ''}`}>
         <div className="farmhouse-roof-body" />
         <div className="farmhouse-body">
           <div className="farmhouse-door" />
@@ -394,12 +420,23 @@ export default function EthanFarm() {
           left: `${ethanPos.x}%`,
           top: `${ethanPos.y}%`,
           transform: `translate(-50%, -50%)${facing === 'left' ? ' scaleX(-1)' : ''}`,
+          cursor: 'pointer',
         }}
+        onClick={handleAskHouse}
       >
         {bubble && (
           <div className="ethan-farm-bubble" style={facing === 'left' ? { transform: 'translateX(-50%) scaleX(-1)' } : undefined}>
             {bubble}
           </div>
+        )}
+        {showHouseButton && (
+          <button
+            className="ethan-house-btn"
+            style={facing === 'left' ? { transform: 'translateX(-50%) scaleX(-1)' } : undefined}
+            onClick={(e) => { e.stopPropagation(); handleGoToHouse(); }}
+          >
+            Go to House
+          </button>
         )}
         <div className="ef-hat" />
         <div className="ef-hat-brim" />
