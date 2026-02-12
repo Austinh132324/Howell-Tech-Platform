@@ -83,7 +83,6 @@ export default function EthanFarm() {
   const [facing, setFacing] = useState<'left' | 'right'>('right')
   const [isWalking, setIsWalking] = useState(false)
   const [bubble, setBubble] = useState<string | null>(null)
-  const [showHouseButton, setShowHouseButton] = useState(false)
   const [houseHighlight, setHouseHighlight] = useState(false)
   const [chatInput, setChatInput] = useState('')
 
@@ -180,6 +179,18 @@ export default function EthanFarm() {
     return () => cancelAnimationFrame(animRef.current)
   }, [showBubble])
 
+  // Navigate Ethan to the farmhouse
+  const goToHouse = useCallback(() => {
+    const farmhouseIdx = WAYPOINTS.findIndex(wp => wp.label === 'farmhouse')
+    if (farmhouseIdx === -1) return
+    const wp = WAYPOINTS[farmhouseIdx]
+    setTargetWaypoint(farmhouseIdx)
+    setFacing(wp.x < posRef.current.x ? 'left' : 'right')
+    setIsWalking(true)
+    setHouseHighlight(true)
+    setTimeout(() => setHouseHighlight(false), 5000)
+  }, [])
+
   // Handle chat submission
   const handleChatSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
@@ -188,8 +199,11 @@ export default function EthanFarm() {
     if (!question) return
 
     if (question.includes('where') && question.includes('house')) {
-      showBubble("My house? Right this way!", 3500)
-      setShowHouseButton(true)
+      showBubble("My house? Right this way!", 2500)
+      setTimeout(() => {
+        goToHouse()
+        showBubble("There's no place like home!", 4000)
+      }, 1500)
     } else {
       const fallbacks = [
         "Hmm, not sure about that one!",
@@ -198,21 +212,7 @@ export default function EthanFarm() {
       ]
       showBubble(fallbacks[Math.floor(Math.random() * fallbacks.length)])
     }
-  }, [chatInput, showBubble])
-
-  // Navigate Ethan to the farmhouse
-  const handleGoToHouse = useCallback(() => {
-    setShowHouseButton(false)
-    const farmhouseIdx = WAYPOINTS.findIndex(wp => wp.label === 'farmhouse')
-    if (farmhouseIdx === -1) return
-    const wp = WAYPOINTS[farmhouseIdx]
-    setTargetWaypoint(farmhouseIdx)
-    setFacing(wp.x < posRef.current.x ? 'left' : 'right')
-    setIsWalking(true)
-    setHouseHighlight(true)
-    showBubble("There's no place like home!", 4000)
-    setTimeout(() => setHouseHighlight(false), 5000)
-  }, [showBubble])
+  }, [chatInput, showBubble, goToHouse])
 
   // Cleanup
   useEffect(() => {
@@ -468,12 +468,6 @@ export default function EthanFarm() {
         <button className="farm-chat-send" type="submit">Ask</button>
       </form>
 
-      {/* Go to House button */}
-      {showHouseButton && (
-        <button className="ethan-house-btn" onClick={handleGoToHouse}>
-          Go to House
-        </button>
-      )}
     </div>
   )
 }
