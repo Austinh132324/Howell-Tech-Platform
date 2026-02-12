@@ -19,7 +19,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
       <p>
         Built by Austin Howell &bull;{' '}
         <a href="mailto:AH132324@hotmail.com">AH132324@hotmail.com</a> &bull;{' '}
-        <a href="https://linkedin.com/in/austin-howell-199609246" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://linkedin.com/in/austin-howell-199609246" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </p>
     </div>
   )
