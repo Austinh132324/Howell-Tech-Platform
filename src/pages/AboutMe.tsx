@@ -141,6 +141,9 @@ export default function AboutMe() {
             architecting micro-frontends to mentoring teammates, I bring curiosity and
             craft to every project I touch.
           </p>
+          <a href="/Austin_Howell_Resume.pdf" download className="resume-download-btn">
+            Download Resume
+          </a>
           <div className="scroll-hint">&darr; scroll</div>
         </div>
       </section>

@@ -2,12 +2,10 @@ import { Link } from 'react-router-dom'
 import '../styles/Games.css'
 
 const games = [
-  {
-    to: '/games/checkers',
-    icon: '\u26AB',
-    title: 'Checkers',
-    desc: 'Classic checkers against an AI opponent',
-  },
+  { to: '/games/checkers', icon: '\u26AB', title: 'Checkers', desc: 'Classic checkers against an AI opponent' },
+  { to: '/games/snake', icon: '\uD83D\uDC0D', title: 'Snake', desc: 'Classic snake game with touch controls' },
+  { to: '/games/tetris', icon: '\uD83E\uDDF1', title: 'Tetris', desc: 'Stack blocks and clear lines' },
+  { to: '/games/tictactoe', icon: '\u274C', title: 'Tic-Tac-Toe', desc: 'Play against AI or a friend' },
 ]
 
 export default function Games() {

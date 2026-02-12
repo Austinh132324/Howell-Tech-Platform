@@ -200,6 +200,16 @@ export default function Home() {
               <div className="card-title">Games</div>
               <div className="card-desc">Play in the browser</div>
             </Link>
+            <Link to="/tools" className="home-card">
+              <div className="card-icon">&#128295;</div>
+              <div className="card-title">Tools</div>
+              <div className="card-desc">Handy utilities</div>
+            </Link>
+            <Link to="/terminal" className="home-card">
+              <div className="card-icon">&#128187;</div>
+              <div className="card-title">Terminal</div>
+              <div className="card-desc">Interactive CLI</div>
+            </Link>
           </div>
         </div>
 
