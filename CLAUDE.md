@@ -4,52 +4,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Howell-Tech-Platform is a shared library platform for Howell Technologies. It is published as `@howell-tech/platform` to JFrog Artifactory and consumed by client application repositories.
-
-## Commands
-
-- `npm run build` — Bundle with tsup (outputs CJS, ESM, and .d.ts to `dist/`)
-- `npm test` — Run tests with vitest
-- `npm run lint` — Lint with ESLint
-- `npm run clean` — Remove the `dist/` directory
+Austin's mobile app playground — a collection of fun little web apps accessible from a phone. Deployed to **https://austinshowell.dev** via GitHub Pages.
 
 ## Architecture
 
 ```
-src/
-├── index.ts          # Main barrel export
-└── utils/
-    ├── index.ts      # Utils barrel export
-    └── hello.ts      # Example utility
-tests/
-└── hello.test.ts     # Example test
+public/
+├── index.html        # Main app entry point
+├── manifest.json     # PWA manifest for mobile add-to-home-screen
+└── CNAME             # Custom domain config
+.github/
+└── workflows/
+    └── deploy-dev.yml  # GitHub Actions deploy to dev environment
 ```
 
-- **Bundler:** tsup — produces dual CJS (`dist/index.js`) + ESM (`dist/index.mjs`) output with TypeScript declarations
-- **Test framework:** vitest
-- **Linter:** ESLint with `@typescript-eslint`
-- **TypeScript:** Strict mode, ES2020 target
+### Adding new apps
 
-### Adding new modules
+1. Create a new directory under `public/` (e.g., `public/my-cool-app/`)
+2. Add an `index.html` inside it
+3. Link to it from the main `public/index.html`
+4. Push to `dev` branch — it auto-deploys
 
-1. Create a directory under `src/` (e.g., `src/auth/`)
-2. Add an `index.ts` barrel export in the new directory
-3. Re-export from `src/index.ts`
-4. Add tests under `tests/`
+## Deployment
 
-## Publishing
+### Dev Environment
 
-Publishing is handled by the `.github/workflows/publish.yml` GitHub Actions workflow. It triggers on version tags (`v*`):
+- **Trigger:** Push to `dev` branch, or manual `workflow_dispatch`
+- **Workflow:** `.github/workflows/deploy-dev.yml`
+- **URL:** https://austinshowell.dev
+- **Platform:** GitHub Pages
 
-1. Bump the version in `package.json`
-2. Commit and tag: `git tag v0.2.0`
-3. Push the tag: `git push origin v0.2.0`
+### Adding new environments
 
-The workflow requires two GitHub Actions secrets:
-- `ARTIFACTORY_REGISTRY_URL` — JFrog Artifactory npm registry URL
-- `ARTIFACTORY_AUTH_TOKEN` — Authentication token for Artifactory
+1. Create a new workflow file (e.g., `deploy-staging.yml`)
+2. Set the trigger branch and environment name
+3. Configure DNS if using a different subdomain
+
+## Custom Domain Setup
+
+The domain `austinshowell.dev` requires DNS configuration:
+
+1. Go to your domain registrar
+2. Add an **A record** pointing to GitHub Pages IPs:
+   - `185.199.108.153`
+   - `185.199.109.153`
+   - `185.199.110.153`
+   - `185.199.111.153`
+3. Optionally add a **CNAME** record: `www` → `Austinh132324.github.io`
+4. In GitHub repo Settings > Pages, set the custom domain to `austinshowell.dev` and enable HTTPS
 
 ## Repository Details
 
 - **Remote:** https://github.com/Austinh132324/Howell-Tech-Platform.git
-- **Git LFS:** Enabled and configured
+- **Domain:** https://austinshowell.dev

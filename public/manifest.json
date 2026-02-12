@@ -1,0 +1,9 @@
+{
+  "name": "Austin's Apps",
+  "short_name": "Apps",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "description": "Austin's app playground"
+}
