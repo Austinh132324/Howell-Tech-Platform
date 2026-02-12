@@ -108,8 +108,9 @@ function getEthanResponse(input: string): EthanResponse {
   const lower = input.toLowerCase().trim()
 
   if (lower === '' ) return { text: "Cat got your tongue?" }
-  if (/where.*(home|house|live|farm)/.test(lower) || (/home|farm/.test(lower) && /where|go|show|take|visit/.test(lower)))
+  if (/where.*(home|house|live|farm)/.test(lower) || (/home|farm/.test(lower) && /where|go|show|take|visit/.test(lower))) {
     return { text: "My home? Come on, I'll show you my farm! 🏡", navigateTo: '/ethan-farm' }
+  }
   if (/^(hi|hey|hello|sup|yo)/.test(lower)) return { text: "Hey hey! What's up? 👋" }
   if (/how are you/.test(lower)) return { text: "I'm a pixel art guy living in a browser. Living the dream!" }
   if (/your name/.test(lower)) return { text: "I'm Ethan! The E is silent. Just kidding, it's not." }
