@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#0b0b1a">
   <title>Austin Howell</title>
   <link rel="manifest" href="manifest.json">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -24,6 +21,26 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* ---- CANVAS BACKGROUND ---- */
+    #bg-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ---- FLOATING GEOMETRIC SHAPES ---- */
+    .geo-shapes { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
+    .geo {
+      position: absolute; border: 1px solid; border-radius: 4px; opacity: 0;
+      animation: geoFloat linear infinite;
+    }
+    @keyframes geoFloat {
+      0% { opacity: 0; transform: translateY(100vh) rotate(0deg); }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-10vh) rotate(360deg); }
+    }
+
+    /* ---- HERO ---- */
     .hero {
       position: relative;
       min-height: 100vh;
@@ -31,152 +48,392 @@
       align-items: center;
       justify-content: center;
       padding: 40px 20px;
-    }
-
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(83, 52, 131, 0.4) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(233, 69, 96, 0.3) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(15, 52, 96, 0.5) 0%, transparent 50%);
-      z-index: 0;
-    }
-
-    .particles {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      overflow: hidden;
-      z-index: 0;
-    }
-
-    .particle {
-      position: absolute;
-      width: 3px;
-      height: 3px;
-      background: rgba(233, 69, 96, 0.5);
-      border-radius: 50%;
-      animation: float linear infinite;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(100vh) scale(0); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+      z-index: 1;
     }
 
     .content {
       position: relative;
       z-index: 1;
       text-align: center;
-      max-width: 600px;
+      max-width: 700px;
       width: 100%;
     }
 
+    /* Avatar with orbit ring */
+    .avatar-wrap {
+      position: relative;
+      width: 140px; height: 140px;
+      margin: 0 auto 36px;
+    }
+    .avatar-ring {
+      position: absolute; top: -10px; left: -10px;
+      width: 160px; height: 160px;
+      border: 2px solid transparent;
+      border-top-color: #e94560;
+      border-right-color: #533483;
+      border-radius: 50%;
+      animation: spin 4s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg) } }
+    .avatar-ring-outer {
+      position: absolute; top: -20px; left: -20px;
+      width: 180px; height: 180px;
+      border: 1px solid transparent;
+      border-bottom-color: rgba(233,69,96,0.3);
+      border-left-color: rgba(83,52,131,0.3);
+      border-radius: 50%;
+      animation: spin 7s linear infinite reverse;
+    }
+    .avatar-ring-pulse {
+      position: absolute; top: -30px; left: -30px;
+      width: 200px; height: 200px;
+      border: 1px solid rgba(233,69,96,0.1);
+      border-radius: 50%;
+      animation: ringPulse 3s ease-in-out infinite;
+    }
+    @keyframes ringPulse {
+      0%,100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.08); opacity: 0.6; }
+    }
     .avatar {
-      width: 100px;
-      height: 100px;
+      width: 140px; height: 140px;
       border-radius: 50%;
       background: linear-gradient(135deg, #e94560, #533483);
-      margin: 0 auto 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: white;
-      box-shadow: 0 0 40px rgba(233, 69, 96, 0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.2rem; font-weight: 800; color: white;
+      box-shadow: 0 0 60px rgba(233, 69, 96, 0.35), 0 0 120px rgba(83, 52, 131, 0.2);
+      opacity: 0; animation: popIn 0.7s 0.3s forwards;
     }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.5) }
+      70% { transform: scale(1.08) }
+      100% { opacity: 1; transform: scale(1) }
+    }
+
+    /* Status indicator */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 20px;
+      background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2);
+      font-size: 0.8rem; color: #4ade80; font-weight: 600;
+      margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.6s 0.4s forwards;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #4ade80;
+      box-shadow: 0 0 8px rgba(74,222,128,0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
 
     h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      margin-bottom: 8px;
+      font-size: 3.6rem; font-weight: 800; margin-bottom: 8px;
       background: linear-gradient(90deg, #e94560, #533483, #e94560);
       background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: shimmer 3s ease-in-out infinite;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: shimmer 3s ease-in-out infinite, fadeUp 0.6s 0.5s forwards;
+      opacity: 0;
     }
-
-    @keyframes shimmer {
-      0%, 100% { background-position: 0% center; }
-      50% { background-position: 200% center; }
-    }
+    @keyframes shimmer { 0%,100% { background-position: 0% center } 50% { background-position: 200% center } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px) } to { opacity: 1; transform: translateY(0) } }
 
     .subtitle {
-      font-size: 1.2rem;
-      color: #a0a0b8;
-      margin-bottom: 48px;
-      font-weight: 300;
+      font-size: 1.2rem; color: #a0a0b8; margin-bottom: 12px; font-weight: 300;
+      opacity: 0; animation: fadeUp 0.6s 0.7s forwards;
     }
+
+    /* Typing effect subtitle */
+    .typed-line {
+      font-size: 1rem; color: #e94560; font-weight: 500;
+      margin-bottom: 40px; min-height: 1.4em;
+      opacity: 0; animation: fadeUp 0.6s 0.8s forwards;
+    }
+    .typed-line .cursor {
+      display: inline-block; width: 2px; height: 1em; background: #e94560;
+      margin-left: 2px; vertical-align: text-bottom;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0 } }
+
+    /* Stat counters */
+    .stats-row {
+      display: flex; justify-content: center; gap: 32px; margin-bottom: 40px; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.6s 0.85s forwards;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: 2rem; font-weight: 800;
+      background: linear-gradient(135deg, #e94560, #a478e8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 0.75rem; color: #a0a0b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
 
     .cards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
       margin-top: 16px;
+      opacity: 0; animation: fadeUp 0.6s 0.95s forwards;
     }
 
     .card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 20px;
-      border-radius: 16px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px 20px; border-radius: 16px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      text-decoration: none;
-      color: #e0e0e0;
-      transition: all 0.3s ease;
+      text-decoration: none; color: #e0e0e0;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       backdrop-filter: blur(10px);
+      position: relative; overflow: hidden;
     }
-
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(233,69,96,0.08) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .card:hover::before { opacity: 1 }
     .card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-6px) scale(1.02);
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(233, 69, 96, 0.4);
-      box-shadow: 0 8px 32px rgba(233, 69, 96, 0.15);
+      box-shadow: 0 12px 40px rgba(233, 69, 96, 0.2), 0 0 80px rgba(83, 52, 131, 0.1);
     }
+    .card-icon { font-size: 2.2rem; margin-bottom: 12px; position: relative; z-index: 1; }
+    .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 4px; position: relative; z-index: 1; }
+    .card-desc { font-size: 0.8rem; color: #a0a0b8; position: relative; z-index: 1; }
 
-    .card-icon {
-      font-size: 2.2rem;
-      margin-bottom: 12px;
+    /* Scroll hint */
+    .scroll-hint {
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: #a0a0b8; font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase;
+      opacity: 0; animation: fadeUp 0.6s 1.3s forwards;
     }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 4px;
+    .scroll-arrow {
+      width: 20px; height: 20px;
+      border-right: 2px solid #e94560; border-bottom: 2px solid #e94560;
+      transform: rotate(45deg); animation: bounce 2s infinite;
     }
+    @keyframes bounce { 0%,100% { transform: rotate(45deg) translate(0,0) } 50% { transform: rotate(45deg) translate(5px,5px) } }
 
-    .card-desc {
-      font-size: 0.8rem;
+    /* ---- TECH MARQUEE ---- */
+    .marquee-section {
+      position: relative; z-index: 1;
+      padding: 40px 0;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      overflow: hidden;
+    }
+    .marquee-track {
+      display: flex; gap: 40px; width: max-content;
+      animation: marquee 30s linear infinite;
+    }
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-item {
+      padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+      white-space: nowrap; flex-shrink: 0;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
       color: #a0a0b8;
     }
 
-    @media (max-width: 400px) {
-      h1 { font-size: 2.2rem; }
+    /* ---- AI CHAT SECTION ---- */
+    .chat-section {
+      position: relative; z-index: 1;
+      max-width: 700px; margin: 0 auto;
+      padding: 80px 20px 100px;
+    }
+    .chat-header {
+      text-align: center; margin-bottom: 32px;
+    }
+    .chat-header h2 {
+      font-size: 2rem; font-weight: 700;
+      background: linear-gradient(90deg, #e94560, #533483);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 8px;
+    }
+    .chat-header p {
+      color: #a0a0b8; font-size: 0.95rem;
+    }
+    .chat-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    .chat-title-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .chat-avatar-sm {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #e94560, #533483);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .chat-title-info { flex: 1; }
+    .chat-title-name { font-size: 0.9rem; font-weight: 600; }
+    .chat-title-status { font-size: 0.7rem; color: #4ade80; display: flex; align-items: center; gap: 4px; }
+    .chat-title-status .dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+
+    .chat-messages {
+      padding: 20px;
+      min-height: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .chat-messages::-webkit-scrollbar { width: 4px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .msg {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      animation: msgIn 0.3s ease-out;
+    }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .msg.bot {
+      align-self: flex-start;
+      background: rgba(233,69,96,0.08);
+      border: 1px solid rgba(233,69,96,0.15);
+      border-bottom-left-radius: 4px;
+      color: #e0e0e0;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(233,69,96,0.2), rgba(83,52,131,0.2));
+      border: 1px solid rgba(233,69,96,0.2);
+      border-bottom-right-radius: 4px;
+      color: #fff;
+    }
+    .msg .typing-dots span {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: #a0a0b8; margin: 0 2px;
+      animation: dotBounce 1.4s infinite;
+    }
+    .msg .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .msg .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotBounce {
+      0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    .chat-input-wrap {
+      display: flex; gap: 8px; padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.02);
+    }
+    .chat-input {
+      flex: 1; padding: 12px 16px; border-radius: 12px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: #e0e0e0; font-size: 0.9rem; font-family: inherit;
+      outline: none; transition: border-color 0.3s;
+    }
+    .chat-input:focus { border-color: rgba(233,69,96,0.4); }
+    .chat-input::placeholder { color: #606080; }
+    .chat-send {
+      padding: 12px 20px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #e94560, #533483);
+      color: #fff; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; transition: all 0.3s; flex-shrink: 0;
+    }
+    .chat-send:hover { box-shadow: 0 4px 20px rgba(233,69,96,0.4); transform: translateY(-1px); }
+    .chat-send:active { transform: translateY(0); }
+
+    .suggestions {
+      display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 16px;
+      background: rgba(255,255,255,0.02);
+    }
+    .suggestion-btn {
+      padding: 6px 14px; border-radius: 16px; font-size: 0.78rem;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      color: #a0a0b8; cursor: pointer; transition: all 0.3s; font-family: inherit;
+    }
+    .suggestion-btn:hover {
+      background: rgba(233,69,96,0.1); border-color: rgba(233,69,96,0.3); color: #e94560;
+    }
+
+    /* ---- FOOTER ---- */
+    .footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 40px 20px 60px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.8rem; color: #606080;
+    }
+    .footer a { color: #a0a0b8; text-decoration: none; transition: color 0.2s; }
+    .footer a:hover { color: #e94560; }
+
+    @media (max-width: 500px) {
+      h1 { font-size: 2.4rem; }
       .cards { grid-template-columns: 1fr; }
+      .stats-row { gap: 20px; }
+      .stat-num { font-size: 1.6rem; }
+      .chat-messages { min-height: 250px; max-height: 350px; }
     }
   </style>
 </head>
 <body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="geo-shapes" id="geoShapes"></div>
+
+  <!-- ===== HERO ===== -->
   <section class="hero">
-    <div class="particles" id="particles"></div>
     <div class="content">
-      <div class="avatar">AH</div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>Available for opportunities</span>
+      </div>
+      <div class="avatar-wrap">
+        <div class="avatar-ring-pulse"></div>
+        <div class="avatar-ring-outer"></div>
+        <div class="avatar-ring"></div>
+        <div class="avatar">AH</div>
+      </div>
       <h1>Austin Howell</h1>
-      <p class="subtitle">Developer &bull; Creator &bull; Gamer</p>
+      <p class="subtitle">Software Engineer &bull; Creator &bull; Gamer</p>
+      <div class="typed-line" id="typedLine"><span class="cursor"></span></div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-num" data-count="4">0</div>
+          <div class="stat-label">GPA</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" data-count="5">0</div>
+          <div class="stat-label">Projects</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" data-count="3">0</div>
+          <div class="stat-label">Years Exp</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" data-count="25">0</div>
+          <div class="stat-label">% Faster Dev</div>
+        </div>
+      </div>
+
       <div class="cards">
         <a href="/aboutme/" class="card">
           <div class="card-icon">&#128100;</div>
           <div class="card-title">About Me</div>
-          <div class="card-desc">Resume &amp; background</div>
+          <div class="card-desc">Resume & background</div>
+        </a>
+        <a href="/projects/" class="card">
+          <div class="card-icon">&#128640;</div>
+          <div class="card-title">Projects</div>
+          <div class="card-desc">What I'm building</div>
         </a>
         <a href="/games/" class="card">
           <div class="card-icon">&#127918;</div>
@@ -185,20 +442,426 @@
         </a>
       </div>
     </div>
+    <div class="scroll-hint">
+      <span>Explore</span>
+      <div class="scroll-arrow"></div>
+    </div>
   </section>
-  <script>
-    (function() {
-      var container = document.getElementById('particles');
-      for (var i = 0; i < 30; i++) {
-        var p = document.createElement('div');
-        p.className = 'particle';
-        p.style.left = Math.random() * 100 + '%';
-        p.style.animationDuration = (6 + Math.random() * 10) + 's';
-        p.style.animationDelay = (Math.random() * 10) + 's';
-        p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
-        container.appendChild(p);
+
+  <!-- ===== TECH MARQUEE ===== -->
+  <div class="marquee-section">
+    <div class="marquee-track" id="marqueeTrack"></div>
+  </div>
+
+  <!-- ===== AI CHAT ===== -->
+  <section class="chat-section">
+    <div class="chat-header">
+      <h2>Ask Me Anything</h2>
+      <p>Chat with an AI version of me &mdash; powered by my resume</p>
+    </div>
+    <div class="chat-box">
+      <div class="chat-title-bar">
+        <div class="chat-avatar-sm">AH</div>
+        <div class="chat-title-info">
+          <div class="chat-title-name">Austin Howell</div>
+          <div class="chat-title-status"><div class="dot"></div> Online</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg bot">Hey! I'm an AI version of Austin. Ask me about my experience, skills, projects, or anything else. What would you like to know?</div>
+      </div>
+      <div class="suggestions" id="suggestions">
+        <button class="suggestion-btn" data-q="What tech stack do you work with?">Tech stack?</button>
+        <button class="suggestion-btn" data-q="Tell me about your experience at JB Hunt">JB Hunt experience?</button>
+        <button class="suggestion-btn" data-q="What projects are you most proud of?">Best projects?</button>
+        <button class="suggestion-btn" data-q="Where did you go to school?">Education?</button>
+        <button class="suggestion-btn" data-q="Are you open to new opportunities?">Hiring?</button>
+      </div>
+      <div class="chat-input-wrap">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Ask me anything..." autocomplete="off">
+        <button class="chat-send" id="chatSend">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>Built by Austin Howell &bull; <a href="mailto:austinhowell132324@gmail.com">austinhowell132324@gmail.com</a> &bull; <a href="https://linkedin.com/in/austin-howell-199609246" target="_blank" rel="noopener">LinkedIn</a></p>
+  </div>
+
+<script>
+(function(){
+
+  /* ===== STAR FIELD + SHOOTING STARS + NEBULA ===== */
+  var canvas = document.getElementById('bg-canvas');
+  var ctx = canvas.getContext('2d');
+  var stars = [], shootingStars = [], mouse = {x:-1000, y:-1000};
+  var orbs = [];
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+    initStars();
+    initOrbs();
+  }
+
+  function initStars(){
+    stars = [];
+    var count = Math.floor(canvas.width * canvas.height / 4000);
+    for(var i = 0; i < count; i++){
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 0.3,
+        baseAlpha: Math.random() * 0.6 + 0.2,
+        alpha: 0,
+        phase: Math.random() * Math.PI * 2,
+        color: Math.random() > 0.85 ? (Math.random() > 0.5 ? '#e94560' : '#a478e8') : '#e0e0e8'
+      });
+    }
+  }
+
+  function initOrbs(){
+    orbs = [];
+    for(var i = 0; i < 5; i++){
+      orbs.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 80 + Math.random() * 200,
+        dx: (Math.random() - 0.5) * 0.3,
+        dy: (Math.random() - 0.5) * 0.3,
+        hue: Math.random() > 0.5 ? '233,69,96' : '83,52,131',
+        alpha: 0.03 + Math.random() * 0.03
+      });
+    }
+  }
+
+  function spawnShootingStar(){
+    shootingStars.push({
+      x: Math.random() * canvas.width * 0.6,
+      y: Math.random() * canvas.height * 0.3,
+      len: 100 + Math.random() * 150,
+      speed: 10 + Math.random() * 10,
+      angle: Math.PI / 5 + Math.random() * 0.4,
+      alpha: 1,
+      decay: 0.012 + Math.random() * 0.01
+    });
+  }
+
+  var t = 0;
+  function draw(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    t += 0.016;
+
+    /* Floating orbs / nebula blobs */
+    for(var o = 0; o < orbs.length; o++){
+      var orb = orbs[o];
+      orb.x += orb.dx;
+      orb.y += orb.dy;
+      if(orb.x < -orb.r) orb.x = canvas.width + orb.r;
+      if(orb.x > canvas.width + orb.r) orb.x = -orb.r;
+      if(orb.y < -orb.r) orb.y = canvas.height + orb.r;
+      if(orb.y > canvas.height + orb.r) orb.y = -orb.r;
+      var g = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
+      g.addColorStop(0, 'rgba(' + orb.hue + ',' + orb.alpha + ')');
+      g.addColorStop(1, 'rgba(' + orb.hue + ',0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(orb.x - orb.r, orb.y - orb.r, orb.r * 2, orb.r * 2);
+    }
+
+    /* Stars */
+    for(var i = 0; i < stars.length; i++){
+      var s = stars[i];
+      s.alpha = s.baseAlpha + Math.sin(t * 2 + s.phase) * 0.2;
+
+      var dx = s.x - mouse.x, dy = s.y - mouse.y;
+      var dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 180){
+        var strength = 1 - dist / 180;
+        s.alpha = Math.min(1, s.alpha + strength * 0.7);
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(233,69,96,' + (0.12 * strength) + ')';
+        ctx.moveTo(s.x, s.y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
       }
-    })();
-  </script>
+
+      for(var j = i+1; j < stars.length; j++){
+        var s2 = stars[j];
+        var d = Math.abs(s.x - s2.x) + Math.abs(s.y - s2.y);
+        if(d < 80){
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(83,52,131,' + (0.06 * (1 - d/80)) + ')';
+          ctx.moveTo(s.x, s.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
+        }
+      }
+
+      if(s.r > 1.5){
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(233,69,96,' + (s.alpha * 0.06) + ')';
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.color.replace(')', ',' + s.alpha + ')').replace('rgb', 'rgba').replace('##', '#');
+      /* fallback for hex colors */
+      if(s.color[0] === '#'){
+        ctx.fillStyle = 'rgba(224,224,232,' + s.alpha + ')';
+        if(s.color === '#e94560') ctx.fillStyle = 'rgba(233,69,96,' + s.alpha + ')';
+        if(s.color === '#a478e8') ctx.fillStyle = 'rgba(164,120,232,' + s.alpha + ')';
+      }
+      ctx.fill();
+    }
+
+    /* Shooting stars */
+    for(var k = shootingStars.length - 1; k >= 0; k--){
+      var ss = shootingStars[k];
+      ss.x += Math.cos(ss.angle) * ss.speed;
+      ss.y += Math.sin(ss.angle) * ss.speed;
+      ss.alpha -= ss.decay;
+      if(ss.alpha <= 0){ shootingStars.splice(k, 1); continue; }
+
+      var tailX = ss.x - Math.cos(ss.angle) * ss.len;
+      var tailY = ss.y - Math.sin(ss.angle) * ss.len;
+      var grad = ctx.createLinearGradient(tailX, tailY, ss.x, ss.y);
+      grad.addColorStop(0, 'rgba(233,69,96,0)');
+      grad.addColorStop(0.6, 'rgba(233,69,96,' + (ss.alpha * 0.5) + ')');
+      grad.addColorStop(1, 'rgba(255,255,255,' + ss.alpha + ')');
+      ctx.beginPath(); ctx.moveTo(tailX, tailY); ctx.lineTo(ss.x, ss.y);
+      ctx.strokeStyle = grad; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+
+      ctx.beginPath(); ctx.arc(ss.x, ss.y, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + ss.alpha + ')';
+      ctx.fill();
+      ctx.beginPath(); ctx.arc(ss.x, ss.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(233,69,96,' + (ss.alpha * 0.15) + ')';
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  resize(); draw();
+  setInterval(spawnShootingStar, 2000);
+  setTimeout(spawnShootingStar, 500);
+  setTimeout(spawnShootingStar, 1200);
+
+  window.addEventListener('resize', resize);
+  window.addEventListener('mousemove', function(e){ mouse.x = e.clientX; mouse.y = e.clientY + window.scrollY; });
+  window.addEventListener('touchmove', function(e){ var touch = e.touches[0]; mouse.x = touch.clientX; mouse.y = touch.clientY + window.scrollY; });
+
+
+  /* ===== FLOATING GEOMETRIC SHAPES ===== */
+  var geoContainer = document.getElementById('geoShapes');
+  var geoShapes = ['triangle','square','diamond','hexagon'];
+  function spawnGeo(){
+    var el = document.createElement('div');
+    el.className = 'geo';
+    var size = 10 + Math.random() * 30;
+    var x = Math.random() * 100;
+    var duration = 15 + Math.random() * 25;
+    var color = Math.random() > 0.5 ? 'rgba(233,69,96,0.15)' : 'rgba(83,52,131,0.15)';
+    el.style.cssText = 'left:'+x+'%;width:'+size+'px;height:'+size+'px;border-color:'+color+';animation-duration:'+duration+'s;';
+    if(Math.random() > 0.6) el.style.borderRadius = '50%';
+    if(Math.random() > 0.7) el.style.transform = 'rotate(45deg)';
+    geoContainer.appendChild(el);
+    setTimeout(function(){ el.remove(); }, duration * 1000);
+  }
+  setInterval(spawnGeo, 1200);
+  for(var g = 0; g < 8; g++) setTimeout(spawnGeo, g * 400);
+
+
+  /* ===== TYPING EFFECT ===== */
+  var phrases = [
+    'Building production apps with React & Angular',
+    'Full stack engineer at JB Hunt',
+    'University of Arkansas  |  4.0 GPA',
+    'Passionate about clean architecture & CI/CD',
+    'Exploring AI agents & MCP servers',
+    'Module Federation & micro-frontend enthusiast'
+  ];
+  var typedEl = document.getElementById('typedLine');
+  var phraseIdx = 0, charIdx = 0, deleting = false, pauseTime = 0;
+
+  function typeLoop(){
+    var phrase = phrases[phraseIdx];
+    if(!deleting){
+      charIdx++;
+      if(charIdx > phrase.length){
+        pauseTime++;
+        if(pauseTime > 60){
+          deleting = true;
+          pauseTime = 0;
+        }
+        requestAnimationFrame(typeLoop);
+        return;
+      }
+    } else {
+      charIdx--;
+      if(charIdx < 0){
+        charIdx = 0;
+        deleting = false;
+        phraseIdx = (phraseIdx + 1) % phrases.length;
+        pauseTime = 0;
+      }
+    }
+    typedEl.innerHTML = phrase.substring(0, charIdx) + '<span class="cursor"></span>';
+    setTimeout(typeLoop, deleting ? 25 : 50);
+  }
+  setTimeout(typeLoop, 1500);
+
+
+  /* ===== STAT COUNTER ANIMATION ===== */
+  var statNums = document.querySelectorAll('.stat-num');
+  var statsDone = false;
+  function animateStats(){
+    if(statsDone) return;
+    statsDone = true;
+    statNums.forEach(function(el){
+      var target = parseFloat(el.getAttribute('data-count'));
+      var isFloat = target % 1 !== 0;
+      var current = 0;
+      var step = target / 40;
+      var interval = setInterval(function(){
+        current += step;
+        if(current >= target){
+          current = target;
+          clearInterval(interval);
+        }
+        el.textContent = isFloat ? current.toFixed(1) : Math.round(current);
+      }, 30);
+    });
+  }
+  /* trigger when hero is visible (immediately) */
+  setTimeout(animateStats, 1200);
+
+
+  /* ===== TECH MARQUEE ===== */
+  var techs = ['TypeScript','JavaScript','Python','Angular','React','Redux','Vite','Cypress','Azure DevOps','Kafka','Elasticsearch','Git','CI/CD','Module Federation','Power BI','HTML/CSS','Agile','REST APIs'];
+  var track = document.getElementById('marqueeTrack');
+  var allTechs = techs.concat(techs); /* duplicate for seamless loop */
+  allTechs.forEach(function(t){
+    var item = document.createElement('span');
+    item.className = 'marquee-item';
+    item.textContent = t;
+    track.appendChild(item);
+  });
+
+
+  /* ===== AI CHATBOT ===== */
+  var chatMessages = document.getElementById('chatMessages');
+  var chatInput = document.getElementById('chatInput');
+  var chatSend = document.getElementById('chatSend');
+  var suggestionsEl = document.getElementById('suggestions');
+
+  /* Knowledge base from Austin's resume */
+  var kb = {
+    greeting: "Hey! I'm Austin Howell, a Software Engineer currently working at JB Hunt. I'm studying Computer Science at the University of Arkansas with a 4.0 GPA. What would you like to know about me?",
+
+    experience: "I've been a Software Engineer at JB Hunt since January 2023. I work on full-stack applications using Angular, React, and Azure DevOps. Before that, I was a Software Development Intern at CTTP in Fayetteville from 2018-2020 where I helped build their website. Most recently, I've also been doing consulting work since March 2025, leading a team of 2 to build a Vite React app with an embedded Power BI reporting portal.",
+
+    jbhunt: "At JB Hunt, I've done a ton of impactful work! I mentored 3 interns, converted our CI/CD pipelines to YAML for anytime deployments instead of weekly ones, modernized our monorepo to use Module Federation, led an Angular-to-React conversion that improved dev time by 25% and load times by 15%, and owned an entire feature end-to-end using Kafka messaging with Elasticsearch. I also helped implement AI developer and code review agents connected to Azure DevOps and MCP servers.",
+
+    skills: "My main tech stack includes TypeScript, JavaScript, Python, Angular, React, Redux, Vite, Cypress for testing, and Azure DevOps for CI/CD. I also work with Kafka, Elasticsearch, Module Federation for micro-frontends, Power BI, and Git. I'm big on clean architecture, agile methodologies, and REST APIs.",
+
+    education: "I'm studying Computer Science at the University of Arkansas with a 4.0 GPA, expected to graduate in May 2027. My coursework includes Data Structures, Algorithms, Software Engineering, Database Management, and Computer Networks.",
+
+    projects: "I've got several projects I'm proud of! This personal platform site (austinshowell.dev), the Power BI Reporting Portal I built as a consultant, the AI Dev Agents I helped implement at JB Hunt, the Kafka Feature Pipeline I owned end-to-end, and the Module Federation Monorepo modernization. You can check them all out on my Projects page!",
+
+    ai_agents: "One of the coolest things I've worked on is researching and implementing AI-powered developer, tester, and code review agents. They integrate with Azure DevOps and internal design system MCP servers to ensure design-compliant development. It's like having AI teammates that help write, test, and review code!",
+
+    kafka: "I took full ownership of a feature that used Kafka messaging to orchestrate Elasticsearch queries. I built the Angular UI, set up CI/CD pipelines across DEV, TEST, and PROD environments, and iterated on it with user feedback over 4 months. It replaced constant endpoint polling with event-driven architecture.",
+
+    module_federation: "I modernized our legacy monorepo UI to use Webpack Module Federation, which enabled independent deployments of micro-frontends. I also led the Angular-to-React conversion that resulted in 25% faster development time and 15% faster load times. Plus, I added component Cypress testing to gate production builds.",
+
+    consulting: "Since March 2025, I've been working as a Software Engineer Consultant. I designed and led a team of 2 developers to create a Vite React application with an embedded Power BI reporting portal. I also handled the Python backend connectors and managed pods in DEV and PROD containers. We used Redux for state management across the app.",
+
+    activities: "I'm a member of ACM (Association for Computing Machinery), participated in HackAR 2024, and I volunteer as a Code.org Hour of Code mentor to help teach kids programming. I love giving back to the community!",
+
+    contact: "You can reach me at austinhowell132324@gmail.com or connect with me on LinkedIn! I'm always happy to chat about software engineering, potential opportunities, or tech in general.",
+
+    hiring: "I'm always open to hearing about exciting opportunities! I'm passionate about building production-quality software, especially with React, Angular, and modern web technologies. If you have something interesting, feel free to reach out at austinhowell132324@gmail.com or connect on LinkedIn.",
+
+    intern: "My first tech role was a Software Development Intern at CTTP in Fayetteville, AR from June 2018 to October 2020. I helped create the company website and an online classes application using the Symphony framework, working with HTML, CSS, and JavaScript.",
+
+    cypress: "I'm a big advocate for testing. At JB Hunt, I implemented end-to-end testing using Cypress, including setting up artifact builds on the Azure pipeline for production deployments. I led the effort to add component Cypress testing on all existing and new development, which significantly reduced bugs making it to production.",
+
+    hobbies: "Outside of coding, I'm a big gamer! I also enjoy building side projects and tinkering with new tech. Check out my Games page - I've got some browser games you can play right now!",
+
+    fallback: "That's a great question! I might not have a specific answer for that, but I'd love to chat more. Feel free to ask about my work experience, tech stack, projects, education, or anything else about my background. Or reach out to the real me at austinhowell132324@gmail.com!"
+  };
+
+  function matchResponse(input){
+    var q = input.toLowerCase();
+
+    if(/^(hi|hey|hello|sup|yo|what'?s? up)/.test(q)) return kb.greeting;
+    if(/(jb\s*hunt|j\.?b\.?\s*hunt)/.test(q)) return kb.jbhunt;
+    if(/(experience|work|job|career|where do you work|what do you do|professional)/.test(q)) return kb.experience;
+    if(/(consult|power\s*bi|reporting|vite react)/.test(q)) return kb.consulting;
+    if(/(skill|tech|stack|language|framework|tools|what.*use|what.*know|technologies)/.test(q)) return kb.skills;
+    if(/(school|university|college|education|degree|gpa|graduat|arkansas|uark)/.test(q)) return kb.education;
+    if(/(project|build|portfolio|proud|ship)/.test(q)) return kb.projects;
+    if(/(ai|agent|mcp|artificial intelligence|machine learn)/.test(q)) return kb.ai_agents;
+    if(/(kafka|elastic|pipeline|event.?driven|messaging)/.test(q)) return kb.kafka;
+    if(/(module.?federation|monorepo|micro.?frontend|webpack)/.test(q)) return kb.module_federation;
+    if(/(cypress|test|qa|quality)/.test(q)) return kb.cypress;
+    if(/(intern|cttp|first.*job|start)/.test(q)) return kb.intern;
+    if(/(acm|hack|volunteer|code\.org|activit|leadership|extracurricular)/.test(q)) return kb.activities;
+    if(/(contact|email|reach|linkedin|connect)/.test(q)) return kb.contact;
+    if(/(hir|opportunit|available|open to|looking for|recruit|resume)/.test(q)) return kb.hiring;
+    if(/(hobby|hobbies|fun|free time|game|gaming|outside|interest)/.test(q)) return kb.hobbies;
+
+    return kb.fallback;
+  }
+
+  function addMessage(text, type){
+    var div = document.createElement('div');
+    div.className = 'msg ' + type;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function showTyping(){
+    var div = document.createElement('div');
+    div.className = 'msg bot';
+    div.id = 'typingIndicator';
+    div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function removeTyping(){
+    var el = document.getElementById('typingIndicator');
+    if(el) el.remove();
+  }
+
+  function sendMessage(text){
+    if(!text.trim()) return;
+    addMessage(text, 'user');
+    chatInput.value = '';
+    suggestionsEl.style.display = 'none';
+
+    showTyping();
+    var delay = 600 + Math.random() * 800;
+    setTimeout(function(){
+      removeTyping();
+      var response = matchResponse(text);
+      addMessage(response, 'bot');
+    }, delay);
+  }
+
+  chatSend.addEventListener('click', function(){ sendMessage(chatInput.value); });
+  chatInput.addEventListener('keydown', function(e){ if(e.key === 'Enter') sendMessage(chatInput.value); });
+
+  /* Suggestion buttons */
+  var suggBtns = document.querySelectorAll('.suggestion-btn');
+  suggBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      sendMessage(btn.getAttribute('data-q'));
+    });
+  });
+
+})();
+</script>
 </body>
 </html>
