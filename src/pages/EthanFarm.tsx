@@ -196,7 +196,7 @@ export default function EthanFarm() {
 
       {/* Title */}
       <div className="farm-title">
-        <h1>Ethan's Farm</h1>
+        <h1>Ethan&apos;s Farm</h1>
         <p>A peaceful life on the land</p>
       </div>
 
