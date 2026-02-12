@@ -198,7 +198,7 @@ export default function EthanFarm() {
     setChatInput('')
     if (!question) return
 
-    if (question.includes('where') && question.includes('house')) {
+    if (question.includes('where') && (question.includes('house') || question.includes('home'))) {
       showBubble("My house? Right this way!", 2500)
       setTimeout(() => {
         goToHouse()
