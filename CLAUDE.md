@@ -15,7 +15,7 @@ public/
 └── CNAME             # Custom domain config
 .github/
 └── workflows/
-    └── deploy-dev.yml  # GitHub Actions deploy to dev environment
+    └── deploy-dev.yml  # GitHub Actions deploy on merge to main
 ```
 
 ### Adding new apps
@@ -23,13 +23,13 @@ public/
 1. Create a new directory under `public/` (e.g., `public/my-cool-app/`)
 2. Add an `index.html` inside it
 3. Link to it from the main `public/index.html`
-4. Push to `dev` branch — it auto-deploys
+4. Merge PR into `main` — it auto-deploys
 
 ## Deployment
 
-### Dev Environment
+### Production
 
-- **Trigger:** Push to `dev` branch, or manual `workflow_dispatch`
+- **Trigger:** Push/merge to `main` branch, or manual `workflow_dispatch`
 - **Workflow:** `.github/workflows/deploy-dev.yml`
 - **URL:** https://austinshowell.dev
 - **Platform:** GitHub Pages

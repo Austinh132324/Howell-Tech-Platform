@@ -1,10 +1,10 @@
-name: Deploy Dev
+name: Deploy to Production
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - dev
+      - main
 
 permissions:
   contents: read
@@ -12,14 +12,14 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-dev
+  group: pages-production
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
-      name: dev
+      name: production
       url: https://austinshowell.dev
 
     steps:
