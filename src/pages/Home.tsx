@@ -188,7 +188,7 @@ export default function Home() {
             <Link to="/aboutme" className="home-card">
               <div className="card-icon">&#128100;</div>
               <div className="card-title">About Me</div>
-              <div className="card-desc">Resume &amp; background</div>
+              <div className="card-desc">Background &amp; experience</div>
             </Link>
             <Link to="/projects" className="home-card">
               <div className="card-icon">&#128640;</div>
