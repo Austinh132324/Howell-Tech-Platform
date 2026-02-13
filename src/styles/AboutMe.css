@@ -90,23 +90,7 @@
   margin: 0;
 }
 
-/* resume download button */
-.resume-download-btn {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 12px 32px;
-  border-radius: 30px;
-  background: linear-gradient(135deg, #e94560, #533483);
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: transform 0.25s, box-shadow 0.25s;
-}
-.resume-download-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(233, 69, 96, 0.25);
-}
+
 
 /* scroll hint */
 .scroll-hint {
